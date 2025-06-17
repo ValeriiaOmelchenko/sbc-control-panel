@@ -1,5 +1,6 @@
 # sbc-control-panel
 Project structure
+<pre> 
 sbc-control-panel/
 ├── CMakeLists.txt
 ├── include/
@@ -16,3 +17,4 @@ sbc-control-panel/
 │   └── MicrophoneMonitor.cpp
 ├── README.md
 └── .gitignore
+<pre> 
