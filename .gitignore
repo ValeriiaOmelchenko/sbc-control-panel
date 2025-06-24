@@ -1,0 +1,14 @@
+# === Build artifacts ===
+build/
+
+# === CMake files ===
+CMakeCache.txt
+
+# === VS Code ===
+.vscode/
+*.code-workspace
+
+# === Logs ===
+*.log
+
+

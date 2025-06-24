@@ -4,6 +4,8 @@ Project structure
 sbc-control-panel/
 ├── CMakeLists.txt
 ├── include/
+│   ├── GpioPin.hpp
+│   ├── ZmqInterface.hpp
 │   ├── LedController.hpp
 │   ├── NetworkMonitor.hpp
 │   ├── ButtonWatcher.hpp
@@ -11,6 +13,8 @@ sbc-control-panel/
 │   └── StateTypes.hpp
 ├── src/
 │   ├── main.cpp
+│   ├── GpioPin.cpp
+│   ├── ZmqInterface.cpp
 │   ├── LedController.cpp
 │   ├── NetworkMonitor.cpp
 │   ├── ButtonWatcher.cpp
