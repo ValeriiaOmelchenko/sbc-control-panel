@@ -1,64 +1,61 @@
 #include "../includes/GpioPin.hpp"
 #include "../includes/LedController.hpp"
+#include "../includes/NetworkMonitor.hpp"
 #include <thread>
 #include <chrono>
 #include <iostream>
 
+class TestNetworkMonitor : public NetworkMonitor {
+public:
+    TestNetworkMonitor(LedController& led)
+        : NetworkMonitor(led), simulateNoInternet(false), simulateNoNetwork(false) {}
+
+    void setSimulateNoInternet(bool v) { simulateNoInternet = v; }
+    void setSimulateNoNetwork(bool v) { simulateNoNetwork = v; }
+
+protected:
+    bool hasNetworkInterface() override {
+        return !simulateNoNetwork;
+    }
+
+    bool hasInternetConnection() override {
+        return !simulateNoInternet;
+    }
+
+private:
+    bool simulateNoInternet;
+    bool simulateNoNetwork;
+};
+
 int main() {
     using namespace std::chrono_literals;
 
-    std::cout << "=== Starting LED Pattern Test ===\n";
+    std::cout << "=== Simulated NetworkMonitor Test ===\n";
 
-    GpioPin ledSystemPin(17, GpioPin::pinMode::Out);
-    GpioPin ledNetworkPin(27, GpioPin::pinMode::Out);
-    GpioPin ledMicPin(18, GpioPin::pinMode::Out);
+    GpioPin netLedPin(27, GpioPin::pinMode::Out);
+    LedController netLed(netLedPin);
 
-    LedController ledSystem(ledSystemPin);
-    LedController ledNetwork(ledNetworkPin);
-    LedController ledMic(ledMicPin);
+    TestNetworkMonitor network(netLed);
 
-    // Solid ON
-    std::cout << "[Pattern] Solid\n";
-    ledSystem.setPattern(States::LedPattern::Solid);
-    ledNetwork.setPattern(States::LedPattern::Solid);
-    ledMic.setPattern(States::LedPattern::Solid);
-    std::this_thread::sleep_for(3s);
+    int counter = 0;
+    while (true) {
+        if (counter == 10) {
+            std::cout << "[Simulate] NoInternet\n";
+            network.setSimulateNoInternet(true);
+        } else if (counter == 20) {
+            std::cout << "[Simulate] NoNetwork\n";
+            network.setSimulateNoNetwork(true);
+        } else if (counter == 30) {
+            std::cout << "[Simulate] Internet connection\n";
+            network.setSimulateNoInternet(false);
+            network.setSimulateNoNetwork(false);
+            counter = 0;  
+        }
 
-    // OFF
-    std::cout << "[Pattern] Off\n";
-    ledSystem.setPattern(States::LedPattern::Off);
-    ledNetwork.setPattern(States::LedPattern::Off);
-    ledMic.setPattern(States::LedPattern::Off);
-    std::this_thread::sleep_for(2s);
-
-    // Blinking Fast
-    std::cout << "[Pattern] BlinkFast\n";
-    ledSystem.setPattern(States::LedPattern::BlinkFast);
-    ledNetwork.setPattern(States::LedPattern::BlinkFast);
-    ledMic.setPattern(States::LedPattern::BlinkFast);
-    for (int i = 0; i < 160; ++i) {
-        ledSystem.update();
-        ledNetwork.update();
-        ledMic.update();
-        std::this_thread::sleep_for(25ms);
-    }  
-
-    // Blinking Slow
-    std::cout << "[Pattern] BlinkSlow\n";
-    ledSystem.setPattern(States::LedPattern::BlinkSlow);
-    ledNetwork.setPattern(States::LedPattern::BlinkSlow);
-    ledMic.setPattern(States::LedPattern::BlinkSlow);
-    for (int i = 0; i < 60; ++i) {
-        ledSystem.update();
-        ledNetwork.update();
-        ledMic.update();
-        std::this_thread::sleep_for(100ms);  
+        network.update();              
+        std::this_thread::sleep_for(1s); 
+        counter++;
     }
-
-    std::cout << "=== Test Complete ===\n";
-    ledSystem.setPattern(States::LedPattern::Off);
-    ledNetwork.setPattern(States::LedPattern::Off);
-    ledMic.setPattern(States::LedPattern::Off);
 
     return 0;
 }

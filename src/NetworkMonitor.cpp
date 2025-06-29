@@ -15,21 +15,22 @@ NetworkMonitor::NetworkMonitor(LedController& led)
 {}
 
 void NetworkMonitor::update() {
-    auto now = steady_clock::now();
+    auto now = std::chrono::steady_clock::now();
 
-    if (now - lastCheck_ >= CHECK_INTERVAL) {
-        lastCheck_ = now;
+    if (now - lastCheck_ < std::chrono::seconds(2))
+        return;
 
-        if (hasInternetConnection()) {
-            state_ = States::NetworkStatus::Connected;
-            led_.setPattern(States::LedPattern::Solid);
-        } else if (hasNetworkInterface()) {
-            state_ = States::NetworkStatus::LocalOnly;
-            led_.setPattern(States::LedPattern::BlinkSlow);
-        } else {
-            state_ = States::NetworkStatus::NoNetwork;
-            led_.setPattern(States::LedPattern::BlinkFast);
-        }
+    lastCheck_ = now;
+
+    if (!hasNetworkInterface()) {
+        led_.setPattern(States::LedPattern::BlinkFast);
+        state_ = States::NetworkStatus::NoNetwork;
+    } else if (!hasInternetConnection()) {
+        led_.setPattern(States::LedPattern::BlinkSlow);
+        state_ = States::NetworkStatus::LocalOnly;
+    } else {
+        led_.setPattern(States::LedPattern::Solid);
+        state_ = States::NetworkStatus::Connected;
     }
 
     led_.update();

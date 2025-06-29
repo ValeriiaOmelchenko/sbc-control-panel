@@ -18,6 +18,6 @@ private:
     States::NetworkStatus state_;
     std::chrono::steady_clock::time_point lastCheck_;
 
-    bool hasNetworkInterface();
-    bool hasInternetConnection();
+    virtual bool hasNetworkInterface();
+    virtual bool hasInternetConnection();
 };

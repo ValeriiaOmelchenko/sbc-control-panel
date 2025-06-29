@@ -1,4 +1,6 @@
 #include "../includes/LedController.hpp"
+#include <iostream>
+
 
 using namespace std::chrono;
 
@@ -15,6 +17,7 @@ LedController::LedController(GpioPin& pin)
 }
 
 void LedController::setPattern(States::LedPattern pattern) {
+    if (pattern_ == pattern) return; 
     pattern_ = pattern;
     lastToggle_ = steady_clock::now();
 
@@ -22,13 +25,18 @@ void LedController::setPattern(States::LedPattern pattern) {
         case States::LedPattern::Off:
             pin_.write(false);
             ledOn_ = false;
+            std::cout << "[Pattern] Off\n";
             break;
         case States::LedPattern::Solid:
             pin_.write(true);
             ledOn_ = true;
+            std::cout << "[Pattern] Solid\n";
             break;
         case States::LedPattern::BlinkSlow:
+            std::cout << "[Pattern] BlinkSlow\n";
+            break;
         case States::LedPattern::BlinkFast:
+            std::cout << "[Pattern] BlinkFast\n";
             break;
     }
 }
