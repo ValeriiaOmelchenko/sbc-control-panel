@@ -2,8 +2,8 @@
 
 using namespace std::chrono;
 
-constexpr milliseconds SLOW_BLINK_PERIOD(200);
-constexpr milliseconds FAST_BLINK_PERIOD(50);
+constexpr milliseconds SLOW_BLINK_PERIOD(400);
+constexpr milliseconds FAST_BLINK_PERIOD(100);
 
 LedController::LedController(GpioPin& pin)
     : pin_(pin),
