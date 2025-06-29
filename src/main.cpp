@@ -1,6 +1,6 @@
-#include "includes/GpioPin.hpp"
-#include "includes/ButtonWatcher.hpp"
-#include "includes/ZmqService.hpp"
+#include "../includes/GpioPin.hpp"
+#include "../includes/ButtonWatcher.hpp"
+#include "../includes/ZmqService.hpp"
 #include <thread>
 #include <chrono>
 #include <iostream>
