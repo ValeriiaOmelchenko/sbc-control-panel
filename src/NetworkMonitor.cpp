@@ -1,0 +1,55 @@
+#include "../includes/NetworkMonitor.hpp"
+#include <cstdlib>
+#include <fstream>
+#include <string>
+#include <chrono>
+
+using namespace std::chrono;
+
+constexpr seconds CHECK_INTERVAL(3s);
+
+NetworkMonitor::NetworkMonitor(LedController& led)
+    : led_(led),
+      state_(States::NetworkStatus::NoNetwork),
+      lastCheck_(steady_clock::now() - CHECK_INTERVAL)
+{}
+
+void NetworkMonitor::update() {
+    auto now = steady_clock::now();
+
+    if (now - lastCheck_ >= CHECK_INTERVAL) {
+        lastCheck_ = now;
+
+        if (hasInternetConnection()) {
+            state_ = States::NetworkStatus::Connected;
+            led_.setPattern(States::LedPattern::Solid);
+        } else if (hasNetworkInterface()) {
+            state_ = States::NetworkStatus::LocalOnly;
+            led_.setPattern(States::LedPattern::BlinkSlow);
+        } else {
+            state_ = States::NetworkStatus::NoNetwork;
+            led_.setPattern(States::LedPattern::BlinkFast);
+        }
+    }
+
+    led_.update();
+}
+
+States::NetworkStatus NetworkMonitor::getState() const {
+    return state_;
+}
+
+bool NetworkMonitor::hasInternetConnection() {
+    int result = std::system("ping -c 1 -W 1 8.8.8.8 > /dev/null 2>&1");
+    return result == 0;
+}
+
+bool NetworkMonitor::hasNetworkInterface() {
+    std::ifstream interfaces("/proc/net/dev");
+    std::string line;
+    while (std::getline(interfaces, line)) {
+        if (line.find("lo:") != std::string::npos) continue;
+        if (line.find(":") != std::string::npos) return true;
+    }
+    return false;
+}
