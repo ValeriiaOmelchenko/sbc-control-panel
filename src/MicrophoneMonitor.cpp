@@ -13,7 +13,7 @@ MicrophoneMonitor::MicrophoneMonitor(LedController& led, int adcChannel, int i2c
 {
     wiringPiSetup(); 
     adc_ = std::make_unique<Adafruit_ADS1015>();
-    adc_->setAddress(i2cAddress_);
+    adc_->setI2cAddress(i2cAddress_);
     adc_->begin();
 }
 
@@ -41,5 +41,5 @@ void MicrophoneMonitor::update() {
 
 float MicrophoneMonitor::calculateAmplitude() {
 
-    return 0
+    return 0;
 }

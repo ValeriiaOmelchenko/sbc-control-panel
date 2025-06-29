@@ -9,14 +9,15 @@ include_directories(includes)
 
 # Include ADS1015 library 
 include_directories(libs/Adafruit_ADS1X15_RPi)
+file(GLOB ADAFRUIT_SOURCES "libs/Adafruit_ADS1X15_RPi/*.cpp")
 
-add_subdirectory(libs/Adafruit_ADS1X15_RPi)
 
 # Include sources
 file(GLOB SOURCES "src/*.cpp")
 
 # Output binary
-add_executable(control_panel ${SOURCES})
+add_executable(control_panel ${SOURCES} ${ADAFRUIT_SOURCES})
+
 
 
 find_package(PkgConfig REQUIRED)
