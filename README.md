@@ -22,3 +22,5 @@ sbc-control-panel/
 ├── README.md
 └── .gitignore
 <pre> 
+# Schematic
+![Schematic](assets/schematic.png)
