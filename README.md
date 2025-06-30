@@ -6,7 +6,7 @@
 sbc-control-panel/
 ├── assets/
 │   ├── schematic.png
-│   └── diagram.png
+│   └── state_diagram.png
 ├── include/
 │   ├── GpioPin.hpp
 │   ├── ZmqService.hpp
@@ -39,7 +39,7 @@ You can view the full state diagram (LED & button control logic) here:
 
 [Open Mermaid state diagram](https://www.mermaidchart.com/app/projects/dd48604f-f231-4d96-9801-e5d4dd8abb1a/diagrams/975d63b3-530b-47d8-b501-1a85a7f480c2/version/v0.1/edit)
 
-
+![alt](assets/state_diagram.png)
 
 ## Installing Dependencies
 
