@@ -1,11 +1,15 @@
 # sbc-control-panel
-Project structure
-<pre> 
+
+## Project structure
+
+```text
 sbc-control-panel/
-├── CMakeLists.txt
+├── assets/
+│   ├── schematic.png
+│   └── diagram.png
 ├── include/
 │   ├── GpioPin.hpp
-│   ├── ZmqInterface.hpp
+│   ├── ZmqService.hpp
 │   ├── LedController.hpp
 │   ├── NetworkMonitor.hpp
 │   ├── ButtonWatcher.hpp
@@ -14,16 +18,28 @@ sbc-control-panel/
 ├── src/
 │   ├── main.cpp
 │   ├── GpioPin.cpp
-│   ├── ZmqInterface.cpp
+│   ├── ZmqService.cpp
 │   ├── LedController.cpp
 │   ├── NetworkMonitor.cpp
 │   ├── ButtonWatcher.cpp
 │   └── MicrophoneMonitor.cpp
+├── CMakeLists.txt
+├── build.sh
+├── install_dependencies.sh
 ├── README.md
 └── .gitignore
-<pre> 
+```
+## Schematic
 
-You can find schematic on this path assets/schematic.png
+![alt](assets/schematic.png)
+
+## State Diagram
+
+You can view the full state diagram (LED & button control logic) here:
+
+[Open Mermaid state diagram](https://www.mermaidchart.com/app/projects/dd48604f-f231-4d96-9801-e5d4dd8abb1a/diagrams/975d63b3-530b-47d8-b501-1a85a7f480c2/version/v0.1/edit)
+
+
 
 ## Installing Dependencies
 
