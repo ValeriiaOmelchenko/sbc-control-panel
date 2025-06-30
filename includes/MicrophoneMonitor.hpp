@@ -3,6 +3,8 @@
 #include "LedController.hpp"
 #include <chrono>
 #include <memory>
+#include "../libs/Adafruit_ADS1X15_RPi/Adafruit_ADS1015.h"
+
 
 class Adafruit_ADS1015;
 
