@@ -33,7 +33,7 @@ int main() {
     LedController micLed(micLedPin);
     NetworkMonitor networkMonitor(networkLed);
     MicrophoneMonitor micMonitor(micLed, 0);  // ADC channel 0
-    ButtonWatcher button(buttonPin, running);
+    ButtonWatcher button(buttonPin, running, systemLed);
 
     std::thread systemLedThread([&]() {
         while (running) {

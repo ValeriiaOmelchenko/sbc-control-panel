@@ -10,8 +10,8 @@
 
 class ButtonWatcher {
 public:
-    ButtonWatcher(GpioPin& pin, std::atomic<bool>& running, LedController* led);
-    ButtonWatcher(GpioPin& pin, ZmqService* zmqService, const std::string& shutdownEndpoint,  std::atomic<bool>& running, LedController* led);
+    ButtonWatcher(GpioPin& pin, std::atomic<bool>& running, LedController&  led);
+    ButtonWatcher(GpioPin& pin, ZmqService* zmqService, const std::string& shutdownEndpoint,  std::atomic<bool>& running, LedController& led);
 
 
     void run(); 
@@ -22,7 +22,7 @@ private:
     std::atomic<bool>& running_;
     GpioPin& pin_;
     ZmqService* zmq_;
-    LedController* led_;
+    LedController&  led_;
     std::string shutdownEndpoint_;
     States::ButtonState state_;
     std::chrono::steady_clock::time_point pressedAt_;

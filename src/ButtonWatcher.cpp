@@ -4,7 +4,7 @@
 constexpr std::chrono::milliseconds DEBOUNCE_TIME_MS(50);
 constexpr std::chrono::seconds HOLD_TIME_SEC(3);
 
-ButtonWatcher::ButtonWatcher(GpioPin& pin, std::atomic<bool>& running, LedController* led)
+ButtonWatcher::ButtonWatcher(GpioPin& pin, std::atomic<bool>& running, LedController&  led)
     : pin_(pin), 
     zmq_(nullptr), 
     shutdownEndpoint_(""), 
@@ -14,7 +14,7 @@ ButtonWatcher::ButtonWatcher(GpioPin& pin, std::atomic<bool>& running, LedContro
     led_(led) 
 {}
 
-ButtonWatcher::ButtonWatcher(GpioPin& pin, ZmqService* zmqService, const std::string& shutdownEndpoint, std::atomic<bool>& running, LedController* led)
+ButtonWatcher::ButtonWatcher(GpioPin& pin, ZmqService* zmqService, const std::string& shutdownEndpoint, std::atomic<bool>& running, LedController& led)
     : pin_(pin),
       zmq_(zmqService),
       shutdownEndpoint_(shutdownEndpoint),
@@ -73,7 +73,7 @@ void ButtonWatcher::update() {
                         std::cout << "[ButtonWatcher] Shutdown message sent via ZMQ\n";
                     } else {
                         std::cout << "[ButtonWatcher] No ZMQ. Rebooting locally...\n";
-                        led_->setPattern(States::LedPattern::Off);
+                        led_.setPattern(States::LedPattern::Off);
                         system("sudo reboot");
                     }
                 }
