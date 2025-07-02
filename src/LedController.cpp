@@ -1,6 +1,6 @@
 #include "../includes/LedController.hpp"
+#include "../includes/Logger.hpp"
 #include <iostream>
-
 
 using namespace std::chrono;
 
@@ -25,18 +25,18 @@ void LedController::setPattern(States::LedPattern pattern) {
         case States::LedPattern::Off:
             pin_.write(false);
             ledOn_ = false;
-            std::cout << "[Pattern] Off\n";
+            Logger::get()->debug("[Pattern] Off");
             break;
         case States::LedPattern::Solid:
             pin_.write(true);
             ledOn_ = true;
-            std::cout << "[Pattern] Solid\n";
+            Logger::get()->debug("[Pattern] Solid");
             break;
         case States::LedPattern::BlinkSlow:
-            std::cout << "[Pattern] BlinkSlow\n";
+            Logger::get()->debug("[Pattern] BlinkSlow");
             break;
         case States::LedPattern::BlinkFast:
-            std::cout << "[Pattern] BlinkFast\n";
+            Logger::get()->debug("[Pattern] BlinkFast");
             break;
     }
 }

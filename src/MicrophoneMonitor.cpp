@@ -1,5 +1,5 @@
 #include "../includes/MicrophoneMonitor.hpp"
-#include <iostream>
+#include "../includes/Logger.hpp"
 #include <wiringPi.h>
 
 using namespace std::chrono;
@@ -19,7 +19,7 @@ MicrophoneMonitor::MicrophoneMonitor(LedController& led, int adcChannel, int i2c
 
 int MicrophoneMonitor::readAdcRaw() {
     if (!adc_) {
-        std::cerr << "[MicrophoneMonitor] ADC not initialized!\n";
+        Logger::get()->error("[MicrophoneMonitor] ADC not initialized!");
         return 0;
     }
     return adc_->readADC_SingleEnded(adcChannel_);
@@ -33,7 +33,7 @@ void MicrophoneMonitor::update() {
         try {
             int value = adc_->readADC_SingleEnded(adcChannel_);
             float volts = value * (1.024 / 2048); 
-            std::cout << "[MicrophoneMonitor] Raw = " << value << ", Volts = " << volts << "\n";
+            Logger::get()->debug("[MicrophoneMonitor] Raw = {}, Volts = {}", value, volts);
 
             if (value >= 0 && value <= 4095) {
                 led_.setPattern(States::LedPattern::Solid); 
@@ -42,15 +42,12 @@ void MicrophoneMonitor::update() {
             }
 
         } catch (const std::exception& e) {
-            std::cerr << "[MicrophoneMonitor] ADC read error: " << e.what() << std::endl;
+            Logger::get()->error("[MicrophoneMonitor] ADC read error: {}", e.what());
             led_.setPattern(States::LedPattern::BlinkFast);
         }
     }
-
 }
 
-
 float MicrophoneMonitor::calculateAmplitude() {
-
     return 0;
 }

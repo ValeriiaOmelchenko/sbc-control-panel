@@ -1,4 +1,3 @@
-#include <iostream>
 #include <thread>
 #include <atomic>
 #include <chrono>
@@ -10,15 +9,19 @@
 #include "../includes/MicrophoneMonitor.hpp"
 #include "../includes/ButtonWatcher.hpp"
 #include "../includes/StateTypes.hpp"
+#include "../includes/Logger.hpp"
 
 std::atomic<bool> running{true};
 
 void handleSignal(int signal) {
     running = false;
+    spdlog::warn("Signal {} received. Shutting down...", signal);
 }
 
 int main() {
     signal(SIGINT, handleSignal);
+    Logger::init();
+    spdlog::info("Application started");
 
     // Define GPIO pins 
     GpioPin systemLedPin(17, GpioPin::pinMode::Out);
@@ -36,6 +39,7 @@ int main() {
     ButtonWatcher button(buttonPin, running, systemLed);
 
     std::thread systemLedThread([&]() {
+        spdlog::info("System LED thread started");
         while (running) {
             bool systemReady = system("/bin/systemctl is-system-running --quiet") == 0;
             if (systemReady) {
@@ -46,26 +50,33 @@ int main() {
             systemLed.update();
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
+        spdlog::info("System LED thread stopped");
     });
 
     std::thread networkThread([&]() {
+        spdlog::info("Network monitor thread started");
         while (running) {
             networkMonitor.update();
             networkLed.update();
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
+        spdlog::info("Network monitor thread stopped");
     });
 
     std::thread micThread([&]() {
+        spdlog::info("Microphone monitor thread started");
         while (running) {
             micMonitor.update();
             micLed.update();
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
+        spdlog::info("Microphone monitor thread stopped");
     });
 
- std::thread buttonThread([&]() {
+    std::thread buttonThread([&]() {
+        spdlog::info("Button watcher thread started");
         button.run(); 
+        spdlog::info("Button watcher thread stopped");
     });
 
     systemLedThread.join();
@@ -73,5 +84,6 @@ int main() {
     micThread.join();
     buttonThread.join();
 
+    spdlog::info("Application exited");
     return 0;
 }

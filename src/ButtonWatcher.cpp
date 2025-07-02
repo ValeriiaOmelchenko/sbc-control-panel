@@ -1,5 +1,5 @@
 #include "../includes/ButtonWatcher.hpp"
-#include <iostream>
+#include "../includes/Logger.hpp"
 
 constexpr std::chrono::milliseconds DEBOUNCE_TIME_MS(50);
 constexpr std::chrono::seconds HOLD_TIME_SEC(3);
@@ -25,7 +25,7 @@ ButtonWatcher::ButtonWatcher(GpioPin& pin, ZmqService* zmqService, const std::st
 {}
 
 void ButtonWatcher::run() {
-    std::cout << "[ButtonWatcher] Polling for button events...\n";
+    Logger::get()->info("[ButtonWatcher] Polling for button events...");
     
     while (running_) {
         if (!pin_.poll(500)) continue; 
@@ -33,7 +33,7 @@ void ButtonWatcher::run() {
         try {
             update();
         } catch (const std::exception& e) {
-            std::cerr << "[ButtonWatcher] Error in update(): " << e.what() << "\n";
+            Logger::get()->error("[ButtonWatcher] Error in update(): {}", e.what());
         }
     }
 }
@@ -47,38 +47,38 @@ void ButtonWatcher::update() {
             if (isPressed) {
                 pressedAt_ = now;
                 state_ = States::ButtonState::Pressed;
-                std::cout << "[ButtonWatcher] -> Pressed\n";
+                Logger::get()->info("[ButtonWatcher] -> Pressed");
             }
             break;
 
         case States::ButtonState::Pressed:
             if (!isPressed) {
                 state_ = States::ButtonState::Idle;
-                std::cout << "[ButtonWatcher] -> Idle (bounce)\n";
+                Logger::get()->info("[ButtonWatcher] -> Idle (bounce)");
             // protection against contact rattle
             } else if (now - pressedAt_ > DEBOUNCE_TIME_MS) {
                 state_ = States::ButtonState::Holding;
-                std::cout << "[ButtonWatcher] -> Holding\n";
+                Logger::get()->info("[ButtonWatcher] -> Holding");
             }
             break;
 
         case States::ButtonState::Holding:
             if (!isPressed) {
                 state_ = States::ButtonState::Idle;
-                std::cout << "[ButtonWatcher] -> Idle (released early)\n";
+                Logger::get()->info("[ButtonWatcher] -> Idle (released early)");
             } else if (now - pressedAt_ > HOLD_TIME_SEC) {
                 if (!shutdownSent_) {
                     if (zmq_) {
                         zmq_->send(shutdownEndpoint_, "shutdown");
-                        std::cout << "[ButtonWatcher] Shutdown message sent via ZMQ\n";
+                        Logger::get()->warn("[ButtonWatcher] Shutdown message sent via ZMQ");
                     } else {
-                        std::cout << "[ButtonWatcher] No ZMQ. Rebooting locally...\n";
+                        Logger::get()->warn("[ButtonWatcher] No ZMQ. Rebooting locally...");
                         led_.setPattern(States::LedPattern::Off);
                         system("sudo /sbin/reboot");
                     }
                 }
                 state_ = States::ButtonState::Triggered;
-                std::cout << "[ButtonWatcher] -> Triggered\n";
+                Logger::get()->info("[ButtonWatcher] -> Triggered");
             }
             break;
 
@@ -86,12 +86,11 @@ void ButtonWatcher::update() {
             if (!isPressed) {
                 state_ = States::ButtonState::Idle;
                 shutdownSent_ = false;
-                std::cout << "[ButtonWatcher] -> Idle (after trigger)\n";
+                Logger::get()->info("[ButtonWatcher] -> Idle (after trigger)");
             }
             break;
     }
 }
-
 
 States::ButtonState ButtonWatcher::getState() const {
     return state_;
