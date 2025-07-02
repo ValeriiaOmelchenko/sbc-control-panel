@@ -47,7 +47,6 @@ void MicrophoneMonitor::update() {
         }
     }
 
-    led_.update();
 }
 
 

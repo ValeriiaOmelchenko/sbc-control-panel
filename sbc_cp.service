@@ -1,0 +1,16 @@
+[Unit]
+Description=SBC Control Panel Daemon
+After=network.target
+
+[Service]
+ExecStart=/home/pi/sbc-control-panel/build/control_panel
+Restart=always
+User=pi
+Group=pi
+StandardOutput=journal
+StandardError=journal
+WorkingDirectory=/home/pi/sbc-control-panel
+Environment=DISPLAY=:0
+
+[Install]
+WantedBy=multi-user.target

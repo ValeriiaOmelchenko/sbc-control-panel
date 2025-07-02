@@ -33,7 +33,6 @@ void NetworkMonitor::update() {
         state_ = States::NetworkStatus::Connected;
     }
 
-    led_.update();
 }
 
 States::NetworkStatus NetworkMonitor::getState() const {

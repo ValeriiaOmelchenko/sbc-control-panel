@@ -1,16 +1,42 @@
-#include "ButtonWatcher.hpp"
+#include "../includes/ButtonWatcher.hpp"
 #include <iostream>
 
 constexpr std::chrono::milliseconds DEBOUNCE_TIME_MS(50);
 constexpr std::chrono::seconds HOLD_TIME_SEC(3);
 
-ButtonWatcher::ButtonWatcher(GpioPin& pin, ZmqService& zmqService, const std::string& shutdownEndpoint)
+ButtonWatcher::ButtonWatcher(GpioPin& pin, std::atomic<bool>& running, LedController* led)
+    : pin_(pin), 
+    zmq_(nullptr), 
+    shutdownEndpoint_(""), 
+    state_(States::ButtonState::Idle), 
+    shutdownSent_(false), 
+    running_(running),
+    led_(led) 
+{}
+
+ButtonWatcher::ButtonWatcher(GpioPin& pin, ZmqService* zmqService, const std::string& shutdownEndpoint, std::atomic<bool>& running, LedController* led)
     : pin_(pin),
       zmq_(zmqService),
       shutdownEndpoint_(shutdownEndpoint),
       state_(States::ButtonState::Idle),
-      shutdownSent_(false)
+      shutdownSent_(false), 
+      running_(running),
+      led_(led) 
 {}
+
+void ButtonWatcher::run() {
+    std::cout << "[ButtonWatcher] Polling for button events...\n";
+    
+    while (running_) {
+        if (!pin_.poll(500)) continue; 
+
+        try {
+            update();
+        } catch (const std::exception& e) {
+            std::cerr << "[ButtonWatcher] Error in update(): " << e.what() << "\n";
+        }
+    }
+}
 
 void ButtonWatcher::update() {
     bool isPressed = !pin_.read();
@@ -42,9 +68,14 @@ void ButtonWatcher::update() {
                 std::cout << "[ButtonWatcher] -> Idle (released early)\n";
             } else if (now - pressedAt_ > HOLD_TIME_SEC) {
                 if (!shutdownSent_) {
-                    zmq_.send(shutdownEndpoint_, "shutdown");
-                    shutdownSent_ = true;
-                    std::cout << "[ButtonWatcher] Shutdown triggered\n";
+                    if (zmq_) {
+                        zmq_->send(shutdownEndpoint_, "shutdown");
+                        std::cout << "[ButtonWatcher] Shutdown message sent via ZMQ\n";
+                    } else {
+                        std::cout << "[ButtonWatcher] No ZMQ. Rebooting locally...\n";
+                        led_->setPattern(States::LedPattern::Off);
+                        system("sudo reboot");
+                    }
                 }
                 state_ = States::ButtonState::Triggered;
                 std::cout << "[ButtonWatcher] -> Triggered\n";

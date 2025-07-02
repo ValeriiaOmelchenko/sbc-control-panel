@@ -1,7 +1,9 @@
 #include "../includes/GpioPin.hpp"
 #include <fstream>
 #include <stdexcept>
-#include <unistd.h>     
+#include <unistd.h>
+#include <fcntl.h>
+#include <poll.h>
 #include <sstream>
 
 GpioPin::GpioPin(int pinNumber, pinMode mode)
@@ -9,6 +11,13 @@ GpioPin::GpioPin(int pinNumber, pinMode mode)
     exportPin();
     setDirection();
     valuePath_ = "/sys/class/gpio/gpio" + std::to_string(pin_) + "/value";
+
+     if (mode == pinMode::In) {
+        fd_ = open(valuePath_.c_str(), O_RDONLY | O_NONBLOCK);
+        if (fd_ < 0) {
+            throw std::runtime_error("Failed to open " + valuePath_ + " for polling");
+        }
+    }
 }
 
 GpioPin::~GpioPin() {
@@ -66,4 +75,29 @@ bool GpioPin::read() const {
     valueFile >> value;
     valueFile.close();
     return value == "1";
+}
+
+void GpioPin::setEdgeTrigger(const std::string& edge) {
+    std::string edgePath = "/sys/class/gpio/gpio" + std::to_string(pin_) + "/edge";
+    std::ofstream edgeFile(edgePath);
+    if (!edgeFile.is_open()) {
+        throw std::runtime_error("Failed to open " + edgePath + " for writing");
+    }
+    edgeFile << edge;
+    edgeFile.close();
+}
+
+bool GpioPin::poll(int timeoutMs) {
+    if (fd_ < 0) throw std::runtime_error("GPIO not configured for polling");
+
+    char buf;
+    lseek(fd_, 0, SEEK_SET);
+    ::read(fd_, &buf, 1);
+
+    struct pollfd pfd;
+    pfd.fd = fd_;
+    pfd.events = POLLPRI | POLLERR;
+
+    int ret = ::poll(&pfd, 1, timeoutMs);
+    return ret > 0;
 }
