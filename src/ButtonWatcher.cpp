@@ -74,7 +74,7 @@ void ButtonWatcher::update() {
                     } else {
                         std::cout << "[ButtonWatcher] No ZMQ. Rebooting locally...\n";
                         led_.setPattern(States::LedPattern::Off);
-                        system("sudo reboot");
+                        system("sudo /sbin/reboot");
                     }
                 }
                 state_ = States::ButtonState::Triggered;
