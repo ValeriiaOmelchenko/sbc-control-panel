@@ -11,6 +11,7 @@ sbc-control-panel/
 │   ├── GpioPin.hpp
 │   ├── ZmqService.hpp
 │   ├── LedController.hpp
+│   ├── Logger.hpp
 │   ├── NetworkMonitor.hpp
 │   ├── ButtonWatcher.hpp
 │   ├── MicrophoneMonitor.hpp
@@ -20,15 +21,20 @@ sbc-control-panel/
 │   ├── GpioPin.cpp
 │   ├── ZmqService.cpp
 │   ├── LedController.cpp
+│   ├── Logger.cpp
 │   ├── NetworkMonitor.cpp
 │   ├── ButtonWatcher.cpp
 │   └── MicrophoneMonitor.cpp
 ├── CMakeLists.txt
 ├── build.sh
 ├── install_dependencies.sh
+├── install_sudoers.sh
+├── setup_systemd.sh
+├── sbc_cp.service
 ├── README.md
 └── .gitignore
 ```
+
 ## Schematic
 
 ![alt](assets/schematic.png)
@@ -65,3 +71,69 @@ git clone https://github.com/WiringPi/WiringPi.git
 cd WiringPi
 ./build
 ```
+
+## Using the Control Panel
+
+To use the control panel, follow these steps on your Raspberry Pi (tested on Raspberry Pi 4):
+
+### 1. Install Dependencies
+
+Before anything else, install required packages using the provided script:
+
+```bash
+./install_dependencies.sh
+```
+
+> Note: `wiringPi` is no longer available via APT. 
+
+### 2. Configure Sudoers
+
+To allow the system to execute shutdown and reboot commands without prompting for a password, run:
+
+```bash
+./install_sudoers.sh
+```
+
+This script appends a `NOPASSWD` rule for the control panel to the `/etc/sudoers.d/` directory.
+
+### 3. Build the Project
+
+Compile the code using the build script:
+
+```bash
+./build.sh
+```
+
+This script creates a fresh `build/` directory, runs CMake, and builds the control panel executable.
+
+### 4. Install systemd Service
+
+Set up the control panel to run automatically on boot with:
+
+```bash
+./setup_systemd.sh
+```
+
+This script will:
+
+- Copy `sbc_cp.service` to `/etc/systemd/system/`
+- Reload the systemd daemon
+- Enable the service on boot
+- Start the service immediately
+
+
+### 5. Run the Application
+
+If you want to run it manually (e.g., for debugging), use:
+
+```bash
+./build/control_panel
+```
+
+You can also filter logs, for example, to see only button-related messages:
+
+```bash
+./build/control_panel | grep "\[ButtonWatcher\]"
+```
+
+Once systemd is set up, the control panel will launch automatically on each system startup.
