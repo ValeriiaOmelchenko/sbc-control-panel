@@ -29,7 +29,7 @@ int main() {
     // Define GPIO pins 
     GpioPin systemLedPin(27, GpioPin::pinMode::Out);
     GpioPin networkLedPin(17, GpioPin::pinMode::Out);
-    GpioPin micLedPin(22, GpioPin::pinMode::Out);
+    GpioPin micLedPin(18, GpioPin::pinMode::Out);
     GpioPin buttonPin(5, GpioPin::pinMode::In);
     buttonPin.setEdgeTrigger("falling");
 
