@@ -4,7 +4,7 @@
 
 class GpioPin {
 public:
-    enum class pinMode { In, Out };
+    enum class pinMode { In, Out, PwmOut };
 
     GpioPin(int pinNumber, pinMode mode);
     ~GpioPin();
@@ -13,6 +13,9 @@ public:
     bool read() const;       
     void setEdgeTrigger(const std::string& edge); // "none", "rising", "falling", "both"
     bool poll(int timeoutMs);   
+    void writePwm(int duty10bit);  
+    pinMode getMode() const { return mode_; }
+
 
 private:
     int pin_;

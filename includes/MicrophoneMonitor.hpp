@@ -25,4 +25,5 @@ private:
     const std::chrono::milliseconds readInterval_{500};
 
     float calculateAmplitude(); // I hope I'll have time to do this
+    int amplitudeToPwm(float amplitudeVolts);
 };

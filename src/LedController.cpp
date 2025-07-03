@@ -1,6 +1,7 @@
 #include "../includes/LedController.hpp"
 #include "../includes/Logger.hpp"
 #include <iostream>
+#include <wiringPi.h>
 
 using namespace std::chrono;
 
@@ -13,7 +14,9 @@ LedController::LedController(GpioPin& pin)
       ledOn_(false),
       lastToggle_(steady_clock::now())
 {
-    pin_.write(false);
+    if (pin_.getMode() == GpioPin::pinMode::Out) {
+        pin_.write(false);
+}
 }
 
 void LedController::setPattern(States::LedPattern pattern) {
@@ -61,3 +64,9 @@ void LedController::update() {
 milliseconds LedController::getBlinkPeriod() const {
     return (pattern_ == States::LedPattern::BlinkFast) ? FAST_BLINK_PERIOD : SLOW_BLINK_PERIOD;
 }
+
+void LedController::setPwm(int dutyCyclePercent) {
+    int pwmValue = dutyCyclePercent * 1024 / 100;
+    pin_.writePwm(pwmValue);
+}
+

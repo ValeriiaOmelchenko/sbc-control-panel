@@ -13,6 +13,8 @@ public:
     States::LedPattern getPattern() const;
 
     void update();
+    void setPwm(int dutyCyclePercent);
+
 
 private:
     GpioPin& pin_;

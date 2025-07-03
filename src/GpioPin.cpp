@@ -6,15 +6,24 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <sstream>
+#include <wiringPi.h>
 
 GpioPin::GpioPin(int pinNumber, pinMode mode)
-    : pin_(pinNumber), mode_(mode) {
+    : pin_(pinNumber), mode_(mode), fd_(-1) {
     Logger::get()->debug("Initializing GPIO pin {}", pin_);
+
+    if (mode_ == pinMode::PwmOut) {
+        wiringPiSetup();
+        ::pinMode(pin_, PWM_OUTPUT);
+        Logger::get()->debug("Set pin {} as PWM_OUTPUT (wiringPi mode)", pin_);
+        return;
+    }
+
     exportPin();
     setDirection();
     valuePath_ = "/sys/class/gpio/gpio" + std::to_string(pin_) + "/value";
 
-    if (mode == pinMode::In) {
+    if (mode_ == pinMode::In) {
         fd_ = open(valuePath_.c_str(), O_RDONLY | O_NONBLOCK);
         if (fd_ < 0) {
             Logger::get()->error("Failed to open {} for polling", valuePath_);
@@ -24,6 +33,8 @@ GpioPin::GpioPin(int pinNumber, pinMode mode)
 }
 
 GpioPin::~GpioPin() {
+    if (mode_ == pinMode::PwmOut) return;
+
     std::ofstream unexportFile("/sys/class/gpio/unexport");
     if (unexportFile.is_open()) {
         Logger::get()->debug("Unexporting GPIO pin {}", pin_);
@@ -43,10 +54,20 @@ void GpioPin::exportPin() {
     exportFile.close();
     Logger::get()->debug("Exported GPIO pin {}", pin_);
 
-    usleep(100000); // it could have been done better (like all other delays in this code)
+    usleep(100000);
 }
 
 void GpioPin::setDirection() {
+    if (mode_ == pinMode::PwmOut) {
+    wiringPiSetup();
+    ::pinMode(pin_, PWM_OUTPUT);
+    pwmSetMode(PWM_MODE_MS);       
+    pwmSetClock(384);              
+    pwmSetRange(1024);             
+    Logger::get()->debug("Set GPIO {} mode to PWM_OUTPUT", pin_);
+    return;
+}
+
     std::string directionPath = "/sys/class/gpio/gpio" + std::to_string(pin_) + "/direction";
     std::ofstream directionFile(directionPath);
     if (!directionFile.is_open()) {
@@ -60,8 +81,8 @@ void GpioPin::setDirection() {
 
 void GpioPin::write(bool value) {
     if (mode_ != pinMode::Out) {
-        Logger::get()->error("Attempt to write to GPIO {} configured as input", pin_);
-        throw std::logic_error("Attempt to write to GPIO configured as input");
+        Logger::get()->error("write() not allowed on GPIO {} (mode != Out)", pin_);
+        throw std::logic_error("Cannot call write() on this GPIO mode");
     }
 
     std::ofstream valueFile(valuePath_);
@@ -76,8 +97,8 @@ void GpioPin::write(bool value) {
 
 bool GpioPin::read() const {
     if (mode_ != pinMode::In) {
-        Logger::get()->error("Attempt to read from GPIO {} configured as output", pin_);
-        throw std::logic_error("Attempt to read from GPIO configured as output");
+        Logger::get()->error("read() not allowed on GPIO {} (mode != In)", pin_);
+        throw std::logic_error("Cannot call read() on this GPIO mode");
     }
 
     std::ifstream valueFile(valuePath_);
@@ -122,4 +143,13 @@ bool GpioPin::poll(int timeoutMs) {
     int ret = ::poll(&pfd, 1, timeoutMs);
     Logger::get()->trace("Polling GPIO {} returned {}", pin_, ret);
     return ret > 0;
+}
+
+void GpioPin::writePwm(int duty10bit) {
+    if (mode_ != pinMode::PwmOut) {
+        Logger::get()->error("Attempt to use PWM on GPIO {} not set to PwmOut", pin_);
+        throw std::logic_error("writePwm() called on non-PWM pin");
+    }
+
+    pwmWrite(pin_, duty10bit);
 }
