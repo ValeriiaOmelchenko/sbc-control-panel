@@ -26,17 +26,18 @@ ButtonWatcher::ButtonWatcher(GpioPin& pin, ZmqService* zmqService, const std::st
 
 void ButtonWatcher::run() {
     Logger::get()->info("[ButtonWatcher] Polling for button events...");
-    
-    while (running_) {
-        if (!pin_.poll(500)) continue; 
 
+    while (running_) {
         try {
             update();
         } catch (const std::exception& e) {
             Logger::get()->error("[ButtonWatcher] Error in update(): {}", e.what());
         }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(50)); 
     }
 }
+
 
 void ButtonWatcher::update() {
     bool isPressed = !pin_.read();
@@ -55,7 +56,6 @@ void ButtonWatcher::update() {
             if (!isPressed) {
                 state_ = States::ButtonState::Idle;
                 Logger::get()->info("[ButtonWatcher] -> Idle (bounce)");
-            // protection against contact rattle
             } else if (now - pressedAt_ > DEBOUNCE_TIME_MS) {
                 state_ = States::ButtonState::Holding;
                 Logger::get()->info("[ButtonWatcher] -> Holding");
@@ -66,17 +66,17 @@ void ButtonWatcher::update() {
             if (!isPressed) {
                 state_ = States::ButtonState::Idle;
                 Logger::get()->info("[ButtonWatcher] -> Idle (released early)");
-            } else if (now - pressedAt_ > HOLD_TIME_SEC) {
-                if (!shutdownSent_) {
-                    if (zmq_) {
-                        zmq_->send(shutdownEndpoint_, "shutdown");
-                        Logger::get()->warn("[ButtonWatcher] Shutdown message sent via ZMQ");
-                    } else {
-                        Logger::get()->warn("[ButtonWatcher] No ZMQ. Rebooting locally...");
-                        //led_.setPattern(States::LedPattern::Off);
-                        //system("sudo /sbin/reboot");
-                    }
+            } else if (now - pressedAt_ > HOLD_TIME_SEC && !shutdownSent_) {
+                shutdownSent_ = true;  
+
+                if (zmq_) {
+                    zmq_->send(shutdownEndpoint_, "shutdown");
+                    Logger::get()->warn("[ButtonWatcher] Shutdown message sent via ZMQ");
+                } else {
+                    Logger::get()->warn("[ButtonWatcher] No ZMQ. Rebooting locally...");
+                    system("sudo /sbin/reboot");
                 }
+
                 state_ = States::ButtonState::Triggered;
                 Logger::get()->info("[ButtonWatcher] -> Triggered");
             }
@@ -91,6 +91,7 @@ void ButtonWatcher::update() {
             break;
     }
 }
+
 
 States::ButtonState ButtonWatcher::getState() const {
     return state_;
