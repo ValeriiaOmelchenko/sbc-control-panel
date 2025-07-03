@@ -10,7 +10,7 @@ void Logger::init() {
         console_sink->set_level(spdlog::level::debug);
 
         auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-            "logs/sbc.log", 1024 * 1024 * 5, 3);  
+            "../logs/sbc.log", 1024 * 1024 * 5, 3);  
         file_sink->set_level(spdlog::level::debug);
 
         std::vector<spdlog::sink_ptr> sinks {console_sink, file_sink};

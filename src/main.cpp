@@ -12,10 +12,13 @@
 #include "../includes/Logger.hpp"
 
 std::atomic<bool> running{true};
+LedController* systemLedPtr = nullptr;
 
 void handleSignal(int signal) {
     running = false;
-    spdlog::warn("Signal {} received. Shutting down...", signal);
+    if (systemLedPtr) {
+        systemLedPtr->setPattern(States::LedPattern::Off);
+    }    spdlog::warn("Signal {} received. Shutting down...", signal);
 }
 
 int main() {
@@ -24,14 +27,15 @@ int main() {
     spdlog::info("Application started");
 
     // Define GPIO pins 
-    GpioPin systemLedPin(17, GpioPin::pinMode::Out);
-    GpioPin networkLedPin(27, GpioPin::pinMode::Out);
+    GpioPin systemLedPin(27, GpioPin::pinMode::Out);
+    GpioPin networkLedPin(17, GpioPin::pinMode::Out);
     GpioPin micLedPin(22, GpioPin::pinMode::Out);
     GpioPin buttonPin(5, GpioPin::pinMode::In);
     buttonPin.setEdgeTrigger("falling");
 
     // Create controllers
     LedController systemLed(systemLedPin);
+    systemLedPtr = &systemLed;
     LedController networkLed(networkLedPin);
     LedController micLed(micLedPin);
     NetworkMonitor networkMonitor(networkLed);

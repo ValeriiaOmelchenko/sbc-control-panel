@@ -73,8 +73,8 @@ void ButtonWatcher::update() {
                         Logger::get()->warn("[ButtonWatcher] Shutdown message sent via ZMQ");
                     } else {
                         Logger::get()->warn("[ButtonWatcher] No ZMQ. Rebooting locally...");
-                        led_.setPattern(States::LedPattern::Off);
-                        system("sudo /sbin/reboot");
+                        //led_.setPattern(States::LedPattern::Off);
+                        //system("sudo /sbin/reboot");
                     }
                 }
                 state_ = States::ButtonState::Triggered;
