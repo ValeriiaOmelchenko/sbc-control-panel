@@ -18,8 +18,9 @@ target_include_directories(control_panel PRIVATE
 )
 
 find_package(PkgConfig REQUIRED)
+find_package(spdlog REQUIRED)
 pkg_check_modules(ZMQ REQUIRED libzmq)
 target_include_directories(control_panel PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_link_libraries(control_panel PRIVATE ${ZMQ_LIBRARIES})
-
+target_link_libraries(control_panel PRIVATE spdlog::spdlog)
 target_link_libraries(control_panel PRIVATE wiringPi pthread)
